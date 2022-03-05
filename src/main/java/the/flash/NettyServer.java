@@ -20,12 +20,20 @@ public class NettyServer {
         final AttributeKey<Object> clientKey = AttributeKey.newInstance("clientKey");
         serverBootstrap
                 .group(boosGroup, workerGroup)
+                // 服务端启动过程中的一些逻辑
+                //.handler()
+                // 指定IO模型
                 .channel(NioServerSocketChannel.class)
+                // 给服务端 channel 指定自定义属性
                 .attr(AttributeKey.newInstance("serverName"), "nettyServer")
+                // 给每一条连接指定自定义属性
                 .childAttr(clientKey, "clientValue")
+                // 给服务端 channel 设置属性. 已完成三次握手的全连接队列长度，等待 accept 调用，从全连接队列取出。
                 .option(ChannelOption.SO_BACKLOG, 1024)
+                // 给每条连接设置一些TCP底层相关的属性
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.TCP_NODELAY, true)
+                // 指定处理新链接数据的读写逻辑
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     protected void initChannel(NioSocketChannel ch) {
                         System.out.println(ch.attr(clientKey).get());
